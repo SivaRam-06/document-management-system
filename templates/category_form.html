@@ -1,0 +1,30 @@
+{% from "dashboard_layout.html" import sidebar, topbar, flash_messages %}
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block extra_css %}<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {{ sidebar() }}
+    <div class="main-content">
+        {{ topbar() }}
+        {{ flash_messages() }}
+        <div class="content-area">
+            <h4 class="mb-4">{{ title }}</h4>
+            <div class="glass-card p-4" style="max-width:600px">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    <div class="mb-3">{{ form.name.label(class="form-label") }}{{ form.name(class="form-control") }}</div>
+                    <div class="mb-3">{{ form.description.label(class="form-label") }}{{ form.description(class="form-control", rows=3) }}</div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">{{ form.icon.label(class="form-label") }}{{ form.icon(class="form-control", placeholder="folder") }}</div>
+                        <div class="col-md-6 mb-3">{{ form.color.label(class="form-label") }}{{ form.color(class="form-control", type="color") }}</div>
+                    </div>
+                    {{ form.submit(class="btn btn-gradient") }}
+                    <a href="{{ url_for('categories') }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
