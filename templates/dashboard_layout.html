@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Dashboard - {{ app_settings.app_name }}{% endblock %}
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% macro sidebar() %}
+<div class="sidebar-overlay"></div>
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <i class="bi bi-folder2-open me-2"></i>{{ app_settings.app_name }}
+    </div>
+    <ul class="sidebar-nav">
+        <li class="nav-section">Main</li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint in ['documents','upload_document','document_details','edit_document'] %}active{% endif %}" href="{{ url_for('documents') }}"><i class="bi bi-files"></i> Documents</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'upload_document' %}active{% endif %}" href="{{ url_for('upload_document') }}"><i class="bi bi-cloud-upload"></i> Upload</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'search' %}active{% endif %}" href="{{ url_for('search') }}"><i class="bi bi-search"></i> Search</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'categories' %}active{% endif %}" href="{{ url_for('categories') }}"><i class="bi bi-tags"></i> Categories</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'reports' %}active{% endif %}" href="{{ url_for('reports') }}"><i class="bi bi-bar-chart"></i> Reports</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'trash_bin' %}active{% endif %}" href="{{ url_for('trash_bin') }}"><i class="bi bi-trash"></i> Trash</a></li>
+        <li class="nav-section">Account</li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'profile' %}active{% endif %}" href="{{ url_for('profile') }}"><i class="bi bi-person"></i> Profile</a></li>
+        {% if current_user.is_admin %}
+        <li class="nav-section">Admin</li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'users' %}active{% endif %}" href="{{ url_for('users') }}"><i class="bi bi-people"></i> Users</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'view_logs' %}active{% endif %}" href="{{ url_for('view_logs') }}"><i class="bi bi-journal-text"></i> Logs</a></li>
+        <li class="nav-item"><a class="nav-link {% if request.endpoint == 'settings' %}active{% endif %}" href="{{ url_for('settings') }}"><i class="bi bi-gear"></i> Settings</a></li>
+        {% endif %}
+        <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+    </ul>
+</aside>
+{% endmacro %}
+
+{% macro topbar() %}
+<div class="top-bar">
+    <div class="d-flex align-items-center gap-3">
+        <button class="sidebar-toggle"><i class="bi bi-list"></i></button>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb breadcrumb-custom mb-0">
+                {% block breadcrumb %}<li class="breadcrumb-item active">Dashboard</li>{% endblock %}
+            </ol>
+        </nav>
+    </div>
+    <div class="d-flex align-items-center gap-3">
+        <div class="search-box d-none d-md-block" style="width:280px">
+            <input type="text" id="live-search" class="form-control form-control-sm" placeholder="Search documents...">
+            <div id="search-results" class="search-results"></div>
+        </div>
+        <button class="theme-toggle" title="Toggle theme"><i class="bi bi-moon"></i></button>
+        <div class="position-relative">
+            <a href="{{ url_for('dashboard') }}#notifications" class="text-muted"><i class="bi bi-bell fs-5"></i></a>
+            {% if unread_notifications > 0 %}<span class="notif-badge">{{ unread_notifications }}</span>{% endif %}
+        </div>
+        <a href="{{ url_for('profile') }}" class="d-flex align-items-center gap-2 text-decoration-none">
+            <img src="{{ url_for('static', filename='profile_images/' + current_user.profile_image) }}" class="profile-img-sm" alt="Profile" onerror="this.src='https://ui-avatars.com/api/?name={{ current_user.name|urlencode }}&background=4f46e5&color=fff'">
+            <span class="d-none d-md-inline text-dark">{{ current_user.name }}</span>
+        </a>
+    </div>
+</div>
+{% endmacro %}
+
+{% macro flash_messages() %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="toast-container-custom">
+    {% for category, message in messages %}
+    <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible alert-custom fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+{% endmacro %}
