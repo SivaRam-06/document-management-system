@@ -1,0 +1,107 @@
+{% from "dashboard_layout.html" import sidebar, topbar, flash_messages %}
+{% extends "base.html" %}
+{% block title %}{{ doc.title }}{% endblock %}
+{% block extra_css %}<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {{ sidebar() }}
+    <div class="main-content">
+        {{ topbar() }}
+        {{ flash_messages() }}
+        <div class="content-area">
+            <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+                <div>
+                    <h4>{{ doc.title }}</h4>
+                    <span class="badge-status badge-{{ doc.status }}">{{ doc.status|title }}</span>
+                    <span class="badge bg-secondary ms-1">{{ doc.confidential_level|title }}</span>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{{ url_for('download_document', doc_id=doc.id) }}" class="btn btn-gradient"><i class="bi bi-download"></i> Download</a>
+                    <a href="{{ url_for('share_document', doc_id=doc.id) }}" class="btn btn-outline-primary" target="_blank"><i class="bi bi-qr-code"></i> Share QR</a>
+                    <form method="POST" action="{{ url_for('toggle_favorite', doc_id=doc.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-outline-warning"><i class="bi bi-star{% if doc.favorite %}-fill{% endif %}"></i></button>
+                    </form>
+                    <form method="POST" action="{{ url_for('toggle_archive', doc_id=doc.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-outline-secondary"><i class="bi bi-archive"></i></button>
+                    </form>
+                    <a href="{{ url_for('edit_document', doc_id=doc.id) }}" class="btn btn-outline-secondary"><i class="bi bi-pencil"></i> Edit</a>
+                    {% if current_user.is_admin and doc.status == 'pending' %}
+                    <form method="POST" action="{{ url_for('approve_document', doc_id=doc.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-success">Approve</button>
+                    </form>
+                    {% endif %}
+                    <form method="POST" action="{{ url_for('duplicate_document', doc_id=doc.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-outline-info">Duplicate</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="glass-card p-4 mb-4">
+                        <h6>Preview</h6>
+                        <div class="doc-preview p-3 bg-light rounded">
+                            {% if doc.file_type in ['png','jpg','jpeg'] %}
+                            <img src="{{ url_for('preview_document', doc_id=doc.id) }}" alt="Preview">
+                            {% elif doc.file_type == 'pdf' %}
+                            <iframe src="{{ url_for('preview_document', doc_id=doc.id) }}" width="100%" height="400"></iframe>
+                            {% else %}
+                            <div class="text-center py-5">
+                                <i class="bi bi-file-earmark fs-1 text-primary"></i>
+                                <p class="mt-2">Preview not available for .{{ doc.file_type }} files.</p>
+                                <a href="{{ url_for('download_document', doc_id=doc.id) }}" class="btn btn-primary btn-sm">Download to view</a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="glass-card p-4">
+                        <h6>Description</h6>
+                        <p>{{ doc.description or 'No description provided.' }}</p>
+                        {% if doc.tags %}
+                        <div class="mt-2">{% for tag in doc.tags.split(',') %}<span class="badge bg-primary me-1">{{ tag.strip() }}</span>{% endfor %}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-4">
+                    <div class="glass-card p-4 mb-4">
+                        <h6>Document Info</h6>
+                        <table class="table table-sm">
+                            <tr><td class="text-muted">File Name</td><td>{{ doc.original_filename }}</td></tr>
+                            <tr><td class="text-muted">Size</td><td>{{ (doc.file_size / 1024)|round(1) }} KB</td></tr>
+                            <tr><td class="text-muted">Type</td><td>{{ doc.file_type|upper }}</td></tr>
+                            <tr><td class="text-muted">Category</td><td>{{ doc.category.name }}</td></tr>
+                            <tr><td class="text-muted">Uploader</td><td>{{ doc.uploader.name }}</td></tr>
+                            <tr><td class="text-muted">Author</td><td>{{ doc.author or '-' }}</td></tr>
+                            <tr><td class="text-muted">Version</td><td>{{ doc.version }}</td></tr>
+                            <tr><td class="text-muted">Upload Date</td><td>{{ doc.created_at.strftime('%b %d, %Y %H:%M') }}</td></tr>
+                            <tr><td class="text-muted">Modified</td><td>{{ doc.updated_at.strftime('%b %d, %Y %H:%M') }}</td></tr>
+                            <tr><td class="text-muted">Downloads</td><td>{{ doc.downloads }}</td></tr>
+                            <tr><td class="text-muted">Views</td><td>{{ doc.views }}</td></tr>
+                            {% if doc.expiry_date %}<tr><td class="text-muted">Expiry</td><td>{{ doc.expiry_date.strftime('%b %d, %Y') }}</td></tr>{% endif %}
+                        </table>
+                    </div>
+                    {% if versions %}
+                    <div class="glass-card p-4">
+                        <h6>Version History</h6>
+                        {% for v in versions %}
+                        <div class="activity-item">
+                            <div class="activity-dot"></div>
+                            <div>
+                                <strong>v{{ v.version }}</strong>
+                                <div class="activity-time">{{ v.created_at.strftime('%b %d, %Y') }} · {{ (v.file_size/1024)|round(1) }} KB</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
