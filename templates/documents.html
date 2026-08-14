@@ -1,0 +1,126 @@
+{% from "dashboard_layout.html" import sidebar, topbar, flash_messages %}
+{% extends "base.html" %}
+{% block title %}Documents{% endblock %}
+{% block extra_css %}<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {{ sidebar() }}
+    <div class="main-content">
+        {{ topbar() }}
+        {{ flash_messages() }}
+        <div class="content-area">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4>Documents</h4>
+                <a href="{{ url_for('upload_document') }}" class="btn btn-gradient"><i class="bi bi-plus-lg"></i> Upload</a>
+            </div>
+
+            <div class="glass-card p-3 mb-4">
+                <form method="GET" class="row g-2 align-items-end">
+                    {{ form.hidden_tag() if form else '' }}
+                    <div class="col-md-3"><input type="text" name="q" class="form-control" placeholder="Search..." value="{{ request.args.get('q','') }}"></div>
+                    <div class="col-md-2">
+                        <select name="category_id" class="form-select">
+                            <option value="0">All Categories</option>
+                            {% for c in form.category_id.choices if c[0] != 0 %}
+                            <option value="{{ c[0] }}" {% if request.args.get('category_id', type=int) == c[0] %}selected{% endif %}>{{ c[1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="sort" class="form-select">
+                            {% for val, label in form.sort.choices %}
+                            <option value="{{ val }}" {% if request.args.get('sort','newest') == val %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-2"><button class="btn btn-primary w-100">Filter</button></div>
+                </form>
+            </div>
+
+            <div class="mb-3 d-flex gap-2 flex-wrap">
+                <button class="btn btn-sm btn-outline-danger" onclick="submitBulkAction('delete')">Trash Selected</button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="submitBulkAction('archive')">Archive</button>
+                <button class="btn btn-sm btn-outline-warning" onclick="submitBulkAction('favorite')">Favorite</button>
+                <form id="bulk-download-form" method="POST" action="{{ url_for('bulk_download') }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <input type="hidden" name="document_ids" id="bulk-download-ids">
+                    <button type="button" class="btn btn-sm btn-outline-primary" onclick="bulkDownload()">Bulk Download</button>
+                </form>
+            </div>
+
+            <form id="bulk-form" method="POST" action="{{ url_for('bulk_action') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="document_ids" id="bulk-ids">
+                <input type="hidden" name="action" id="bulk-action">
+            </form>
+
+            <div class="glass-card p-0 overflow-hidden">
+                <table class="table table-modern mb-0">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" onchange="toggleAllDocs(this)"></th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Downloads</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for doc in documents %}
+                        <tr>
+                            <td><input type="checkbox" class="doc-checkbox" value="{{ doc.id }}"></td>
+                            <td>
+                                <a href="{{ url_for('document_details', doc_id=doc.id) }}">{{ doc.title }}</a>
+                                {% if doc.favorite %}<i class="bi bi-star-fill text-warning ms-1"></i>{% endif %}
+                                {% if doc.archived %}<span class="badge bg-secondary ms-1">Archived</span>{% endif %}
+                            </td>
+                            <td>{{ doc.category.name }}</td>
+                            <td><span class="badge bg-light text-dark">{{ doc.file_type|upper }}</span></td>
+                            <td><span class="badge-status badge-{{ doc.status }}">{{ doc.status }}</span></td>
+                            <td>{{ doc.downloads }}</td>
+                            <td>{{ doc.created_at.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('download_document', doc_id=doc.id) }}" class="btn btn-outline-primary" title="Download"><i class="bi bi-download"></i></a>
+                                    <a href="{{ url_for('edit_document', doc_id=doc.id) }}" class="btn btn-outline-secondary" title="Edit"><i class="bi bi-pencil"></i></a>
+                                    <form method="POST" action="{{ url_for('delete_document', doc_id=doc.id) }}" class="d-inline" onsubmit="return confirm('Move to trash?')">
+                                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                        <button class="btn btn-outline-danger btn-sm"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="8" class="text-center text-muted py-4">No documents found.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if pagination.pages > 1 %}
+            <nav class="mt-4"><ul class="pagination justify-content-center">
+                {% for p in pagination.iter_pages() %}
+                {% if p %}<li class="page-item {% if p == pagination.page %}active{% endif %}"><a class="page-link" href="{{ url_for('documents', page=p, **request.args) }}">{{ p }}</a></li>
+                {% else %}<li class="page-item disabled"><span class="page-link">…</span></li>{% endif %}
+                {% endfor %}
+            </ul></nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function bulkDownload() {
+    const ids = getSelectedDocIds();
+    if (!ids) { alert('Select documents.'); return; }
+    document.getElementById('bulk-download-ids').value = ids;
+    document.getElementById('bulk-download-form').submit();
+}
+</script>
+{% endblock %}
