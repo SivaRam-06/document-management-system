@@ -1,0 +1,50 @@
+{% from "dashboard_layout.html" import sidebar, topbar, flash_messages %}
+{% extends "base.html" %}
+{% block title %}Edit Document{% endblock %}
+{% block extra_css %}<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {{ sidebar() }}
+    <div class="main-content">
+        {{ topbar() }}
+        {{ flash_messages() }}
+        <div class="content-area">
+            <h4 class="mb-4">Edit: {{ doc.title }}</h4>
+            <div class="glass-card p-4">
+                <form method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    <div class="row">
+                        <div class="col-md-8 mb-3">{{ form.title.label(class="form-label") }}{{ form.title(class="form-control") }}</div>
+                        <div class="col-md-4 mb-3">{{ form.category_id.label(class="form-label") }}{{ form.category_id(class="form-select") }}</div>
+                    </div>
+                    <div class="mb-3">{{ form.description.label(class="form-label") }}{{ form.description(class="form-control", rows=3) }}</div>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">{{ form.author.label(class="form-label") }}{{ form.author(class="form-control") }}</div>
+                        <div class="col-md-3 mb-3">{{ form.version.label(class="form-label") }}{{ form.version(class="form-control") }}</div>
+                        <div class="col-md-3 mb-3">{{ form.confidential_level.label(class="form-label") }}{{ form.confidential_level(class="form-select") }}</div>
+                        <div class="col-md-3 mb-3">{{ form.expiry_date.label(class="form-label") }}{{ form.expiry_date(class="form-control") }}</div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">{{ form.tags.label(class="form-label") }}{{ form.tags(class="form-control") }}</div>
+                        {% if current_user.is_admin %}
+                        <div class="col-md-3 mb-3">{{ form.status.label(class="form-label") }}{{ form.status(class="form-select") }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Replace File (optional)</label>
+                        <div class="drop-zone" id="drop-zone">
+                            <i class="bi bi-cloud-arrow-up d-block"></i>
+                            <p>Current: {{ doc.original_filename }}</p>
+                        </div>
+                        {{ form.file(class="d-none", id="file-input") }}
+                        <div id="file-preview"></div>
+                    </div>
+                    {{ form.submit(class="btn btn-gradient") }}
+                    <a href="{{ url_for('document_details', doc_id=doc.id) }}" class="btn btn-outline-secondary ms-2">Cancel</a>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
