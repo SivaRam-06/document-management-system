@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Home - {{ app_settings.app_name }}{% endblock %}
+
+{% block body %}
+<nav class="navbar navbar-custom navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="{{ url_for('index') }}"><i class="bi bi-folder2-open me-2"></i>{{ app_settings.app_name }}</a>
+        <div class="d-flex align-items-center gap-2">
+            <button class="theme-toggle"><i class="bi bi-moon"></i></button>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-primary">Login</a>
+            <a href="{{ url_for('register') }}" class="btn btn-gradient">Get Started</a>
+        </div>
+    </div>
+</nav>
+
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 fade-in">
+                <h1 class="hero-title mb-4">Manage Documents Smarter</h1>
+                <p class="lead text-muted mb-4">A secure, modern document management platform with upload, search, versioning, analytics, and role-based access control.</p>
+                <div class="d-flex gap-3 flex-wrap">
+                    <a href="{{ url_for('register') }}" class="btn btn-gradient btn-lg">Start Free</a>
+                    <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">Sign In</a>
+                </div>
+            </div>
+            <div class="col-lg-6 mt-5 mt-lg-0 fade-in">
+                <div class="glass-card p-4">
+                    <div class="row g-3 text-center">
+                        <div class="col-4"><div class="h2 text-primary">{{ stats.documents }}</div><small class="text-muted">Documents</small></div>
+                        <div class="col-4"><div class="h2 text-success">{{ stats.users }}</div><small class="text-muted">Users</small></div>
+                        <div class="col-4"><div class="h2 text-warning">{{ stats.categories }}</div><small class="text-muted">Categories</small></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">Powerful Features</h2>
+        <div class="row g-4">
+            {% for icon, title, desc in [
+                ('cloud-upload', 'Secure Uploads', 'Upload PDF, Office docs, images up to 50MB with validation.'),
+                ('search', 'Smart Search', 'Instant search with advanced filters and sorting.'),
+                ('shield-check', 'Role-Based Access', 'Admin and user roles with granular permissions.'),
+                ('bar-chart', 'Analytics & Reports', 'Charts, PDF/CSV/Excel exports from live data.'),
+            ] %}
+            <div class="col-md-6 col-lg-3">
+                <div class="glass-card p-4 h-100 text-center">
+                    <i class="bi bi-{{ icon }} fs-1 text-primary mb-3 d-block"></i>
+                    <h5>{{ title }}</h5>
+                    <p class="text-muted small mb-0">{{ desc }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<footer class="footer-custom">
+    <p class="mb-0">&copy; 2026 {{ app_settings.app_name }}. All rights reserved.</p>
+</footer>
+{% endblock %}
