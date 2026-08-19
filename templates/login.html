@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Login - {{ app_settings.app_name }}{% endblock %}
+
+{% block body %}
+<div class="auth-wrapper">
+    <div class="glass-card auth-card fade-in">
+        <div class="auth-logo"><i class="bi bi-folder2-open"></i> DMS</div>
+        <p class="text-center text-muted mb-4">Sign in to your account</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible">{{ message }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
+        {% endfor %}
+        {% endwith %}
+
+        <form method="POST" class="needs-validation" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="mb-3">
+                {{ form.username.label(class="form-label") }}
+                {{ form.username(class="form-control", placeholder="Username or email") }}
+            </div>
+            <div class="mb-3">
+                {{ form.password.label(class="form-label") }}
+                {{ form.password(class="form-control", placeholder="Password") }}
+            </div>
+            <div class="mb-3 form-check">
+                {{ form.remember(class="form-check-input") }}
+                {{ form.remember.label(class="form-check-label") }}
+            </div>
+            {{ form.submit(class="btn btn-gradient w-100 mb-3") }}
+        </form>
+        <p class="text-center mb-0">
+            <a href="{{ url_for('forgot_password') }}">Forgot password?</a> ·
+            <a href="{{ url_for('register') }}">Create account</a>
+        </p>
+        <p class="text-center text-muted small mt-3 mb-0">Demo: admin / Admin@123</p>
+    </div>
+</div>
+<button class="theme-toggle position-fixed" style="top:1rem;right:1rem"><i class="bi bi-moon"></i></button>
+{% endblock %}
