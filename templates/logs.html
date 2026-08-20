@@ -1,0 +1,39 @@
+{% from "dashboard_layout.html" import sidebar, topbar, flash_messages %}
+{% extends "base.html" %}
+{% block title %}Activity Logs{% endblock %}
+{% block extra_css %}<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {{ sidebar() }}
+    <div class="main-content">
+        {{ topbar() }}
+        {{ flash_messages() }}
+        <div class="content-area">
+            <h4 class="mb-4">System Logs</h4>
+            <div class="glass-card p-0 overflow-hidden">
+                <table class="table table-modern mb-0">
+                    <thead><tr><th>User</th><th>Action</th><th>Document</th><th>Timestamp</th></tr></thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td>{{ log.user.name }}</td>
+                            <td>{{ log.action }}</td>
+                            <td>{% if log.document_id %}#{{ log.document_id }}{% else %}-{% endif %}</td>
+                            <td>{{ log.timestamp.strftime('%b %d, %Y %H:%M:%S') }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% if pagination.pages > 1 %}
+            <nav class="mt-4"><ul class="pagination justify-content-center">
+                {% for p in pagination.iter_pages() %}
+                {% if p %}<li class="page-item {% if p == pagination.page %}active{% endif %}"><a class="page-link" href="{{ url_for('view_logs', page=p) }}">{{ p }}</a></li>{% endif %}
+                {% endfor %}
+            </ul></nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
