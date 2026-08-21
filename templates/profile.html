@@ -1,0 +1,73 @@
+{% from "dashboard_layout.html" import sidebar, topbar, flash_messages %}
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+{% block extra_css %}<link href="{{ url_for('static', filename='css/dashboard.css') }}" rel="stylesheet">{% endblock %}
+
+{% block body %}
+<div class="app-layout">
+    {{ sidebar() }}
+    <div class="main-content">
+        {{ topbar() }}
+        {{ flash_messages() }}
+        <div class="content-area">
+            <h4 class="mb-4">My Profile</h4>
+            <div class="row g-4">
+                <div class="col-lg-4">
+                    <div class="glass-card p-4 text-center">
+                        <img id="profile-preview" src="{{ url_for('static', filename='profile_images/' + current_user.profile_image) }}" class="profile-img mb-3" alt="Profile" onerror="this.src='https://ui-avatars.com/api/?name={{ current_user.name|urlencode }}&background=4f46e5&color=fff&size=120'">
+                        <h5>{{ current_user.name }}</h5>
+                        <p class="text-muted">@{{ current_user.username }} · {{ current_user.role|title }}</p>
+                        {% if current_user.last_login %}<small class="text-muted">Last login: {{ current_user.last_login.strftime('%b %d, %Y %H:%M') }}</small>{% endif %}
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="glass-card p-4 mb-4">
+                        <h6 class="mb-3">Update Profile</h6>
+                        <form method="POST" enctype="multipart/form-data">
+                            {{ form.hidden_tag() }}
+                            <input type="hidden" name="form_type" value="profile">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">{{ form.name.label(class="form-label") }}{{ form.name(class="form-control") }}</div>
+                                <div class="col-md-6 mb-3">{{ form.email.label(class="form-label") }}{{ form.email(class="form-control") }}</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-4 mb-3">{{ form.phone.label(class="form-label") }}{{ form.phone(class="form-control") }}</div>
+                                <div class="col-md-4 mb-3">{{ form.department.label(class="form-label") }}{{ form.department(class="form-control") }}</div>
+                                <div class="col-md-4 mb-3">{{ form.designation.label(class="form-label") }}{{ form.designation(class="form-control") }}</div>
+                            </div>
+                            <div class="mb-3">{{ form.bio.label(class="form-label") }}{{ form.bio(class="form-control", rows=3) }}</div>
+                            <div class="mb-3">{{ form.profile_image.label(class="form-label") }}{{ form.profile_image(class="form-control", onchange="previewImage(this,'profile-preview')") }}</div>
+                            {{ form.submit(class="btn btn-gradient") }}
+                        </form>
+                    </div>
+                    <div class="glass-card p-4 mb-4">
+                        <h6 class="mb-3">Change Password</h6>
+                        <form method="POST">
+                            {{ pwd_form.hidden_tag() }}
+                            <input type="hidden" name="form_type" value="password">
+                            <div class="mb-3">{{ pwd_form.current_password.label(class="form-label") }}{{ pwd_form.current_password(class="form-control") }}</div>
+                            <div class="mb-3">{{ pwd_form.new_password.label(class="form-label") }}{{ pwd_form.new_password(class="form-control", id="password") }}
+                                <div class="password-strength"><div class="password-strength-bar"></div></div>
+                            </div>
+                            <div class="mb-3">{{ pwd_form.confirm_password.label(class="form-label") }}{{ pwd_form.confirm_password(class="form-control") }}</div>
+                            {{ pwd_form.submit(class="btn btn-gradient") }}
+                        </form>
+                    </div>
+                    <div class="glass-card p-4">
+                        <h6 class="mb-3">Activity History</h6>
+                        {% for act in activities %}
+                        <div class="activity-item">
+                            <div class="activity-dot"></div>
+                            <div>
+                                <div class="activity-text">{{ act.action }}</div>
+                                <div class="activity-time">{{ act.timestamp.strftime('%b %d, %Y %H:%M') }}</div>
+                            </div>
+                        </div>
+                        {% else %}<p class="text-muted">No activity yet.</p>{% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
